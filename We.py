@@ -82,7 +82,7 @@ async def set_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Main function to set up the bot
 def main():
     # Replace 'YOUR_BOT_TOKEN' with your actual bot token
-    bot_token = "7880602456:AAGajxDcV8BxyJHw0aGFmOurPbbkuM2OoHI"
+    bot_token = "7880602456:AAFbD_EtlNT1t2NhqFfdJBd6jifftMlIc_A"
 
     # Create an application instance
     application = Application.builder().token(bot_token).build()
