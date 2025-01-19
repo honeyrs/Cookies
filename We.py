@@ -1,9 +1,9 @@
 # Importing necessary libraries
 from telegram import Update
-from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
+from telegram.ext import Application, MessageHandler, filters, CallbackContext
 
 # Function to handle forwarded messages
-def handle_forward(update: Update, context: CallbackContext) -> None:
+async def handle_forward(update: Update, context: CallbackContext) -> None:
     # Extracting the message text
     message_text = update.message.text
 
@@ -14,27 +14,25 @@ def handle_forward(update: Update, context: CallbackContext) -> None:
         updated_message = message_text.replace("worldgaming12345^", new_password)
 
         # Sending confirmation message
-        update.message.reply_text(
+        await update.message.reply_text(
             f"Password has been updated!\n\nUpdated Details:\n{updated_message}"
         )
     else:
-        update.message.reply_text("No RDP details found in the message.")
+        await update.message.reply_text("No RDP details found in the message.")
 
 # Main function to set up the bot
 def main():
     # Telegram bot token (replace 'YOUR_BOT_TOKEN' with your actual bot token)
     bot_token = "7880602456:AAFbD_EtlNT1t2NhqFfdJBd6jifftMlIc_A"
 
-    # Setting up the updater and dispatcher
-    updater = Updater(token=bot_token, use_context=True)
-    dispatcher = updater.dispatcher
+    # Setting up the application
+    application = Application.builder().token(bot_token).build()
 
     # Adding handler for forwarded messages
-    dispatcher.add_handler(MessageHandler(Filters.text & Filters.forwarded, handle_forward))
+    application.add_handler(MessageHandler(filters.TEXT & filters.FORWARDED, handle_forward))
 
     # Starting the bot
-    updater.start_polling()
-    updater.idle()
+    application.run_polling()
 
 # Running the main function
 if __name__ == "__main__":
