@@ -210,7 +210,7 @@ class RDPBot:
 
 def main():
     # Replace with your bot token
-    bot_token = "8152265435:AAH9ex75KOmXl6lb_M79EAQgUvnPjbfkYUA"
+    bot_token = "7893919705:AAG7OrCE_09NTlrJDBSDrsupZE1SWl8BRl4"
     
     # Initialize bot
     rdp_bot = RDPBot(bot_token)
