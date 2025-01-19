@@ -1,6 +1,6 @@
 # Importing necessary libraries
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
 
 # Function to handle forwarded messages
 def handle_forward(update: Update, context: CallbackContext) -> None:
@@ -26,11 +26,11 @@ def main():
     bot_token = "7880602456:AAFbD_EtlNT1t2NhqFfdJBd6jifftMlIc_A"
 
     # Setting up the updater and dispatcher
-    updater = Updater(bot_token)
+    updater = Updater(token=bot_token, use_context=True)
     dispatcher = updater.dispatcher
 
     # Adding handler for forwarded messages
-    dispatcher.add_handler(CommandHandler("start", handle_forward))
+    dispatcher.add_handler(MessageHandler(Filters.text & Filters.forwarded, handle_forward))
 
     # Starting the bot
     updater.start_polling()
