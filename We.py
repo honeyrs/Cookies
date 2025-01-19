@@ -118,7 +118,7 @@ async def handle_button(update: Update, context: CallbackContext) -> None:
         )
 
 def main():
-    bot_token = "7880602456:AAHV6BHRCgWX7DOnQYe-iUpX3S--JAwyS_0"
+    bot_token = "8152265435:AAH9ex75KOmXl6lb_M79EAQgUvnPjbfkYUA"
     application = Application.builder().token(bot_token).build()
 
     # Command handlers
