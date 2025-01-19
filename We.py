@@ -53,7 +53,7 @@ async def set_password(update: Update, context: CallbackContext) -> None:
 # Main function to set up the bot
 def main():
     # Telegram bot token (replace 'YOUR_BOT_TOKEN' with your actual bot token)
-    bot_token = "7880602456:AAFbD_EtlNT1t2NhqFfdJBd6jifftMlIc_A"
+    bot_token = "7880602456:AAHV6BHRCgWX7DOnQYe-iUpX3S--JAwyS_0"
 
     # Setting up the application
     application = Application.builder().token(bot_token).build()
