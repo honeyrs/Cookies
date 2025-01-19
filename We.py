@@ -333,7 +333,7 @@ Select an option to modify:
 
 def main():
     # Replace with your bot token
-    bot_token = "7893919705:AAG7OrCE_09NTlrJDBSDrsupZE1SWl8BRl4"
+    bot_token = "7893919705:AAEvxFdD6D2nDAUPdLkgCEa8SmoALq7h2s4"
     
     # Initialize bot
     rdp_bot = RDPBot(bot_token)
