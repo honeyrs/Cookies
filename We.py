@@ -1,20 +1,129 @@
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import Application, MessageHandler, CommandHandler, filters, CallbackContext, ConversationHandler
 import re
+from typing import List, Dict
 
 # Global variables
 new_password = "newsecurepassword123!"  # Pre-selected new password
 service_type = "rdp"  # Default service type
 
-# Keyboard layouts
+# Regular expressions for parsing RDP details
+RDP_PATTERN = re.compile(
+    r'IP:\s*(\d+\.\d+\.\d+\.\d+)\s*'
+    r'USER:\s*(\w+)\s*'
+    r'PAS:\s*([\w\^\$\#\@\!]+)\s*'
+    r'RAM:\s*(\d+)\s*'
+    r'CORE:\s*(\d+)\s*'
+    r'LOCATION:\s*(\w+)',
+    re.IGNORECASE
+)
+
+class RDPEntry:
+    def __init__(self, ip: str, user: str, password: str, ram: str, core: str, location: str):
+        self.ip = ip
+        self.user = user
+        self.password = password
+        self.ram = ram
+        self.core = core
+        self.location = location
+        self.status = "⏳ Processing"
+        self.error = None
+
+    def to_string(self) -> str:
+        status_emoji = "✅" if self.status == "Success" else "❌" if self.status == "Failed" else "⏳"
+        result = f"{status_emoji} *RDP Entry*\n\n"
+        result += f"IP: `{self.ip}`\n"
+        result += f"User: `{self.user}`\n"
+        result += f"Password: `{self.password}`\n"
+        result += f"RAM: {self.ram}GB\n"
+        result += f"Core: {self.core}\n"
+        result += f"Location: {self.location}\n"
+        if self.error:
+            result += f"\nError: {self.error}"
+        return result
+
+def parse_rdp_entries(message_text: str) -> List[RDPEntry]:
+    entries = []
+    matches = RDP_PATTERN.finditer(message_text)
+    
+    for match in matches:
+        ip, user, password, ram, core, location = match.groups()
+        entry = RDPEntry(ip, user, password, ram, core, location)
+        entries.append(entry)
+    
+    return entries
+
+async def handle_forward(update: Update, context: CallbackContext) -> None:
+    message_text = update.message.text
+    
+    # Parse RDP entries from the message
+    rdp_entries = parse_rdp_entries(message_text)
+    
+    if not rdp_entries:
+        await update.message.reply_text(
+            "❌ *Error: No valid RDP details found*\n\nPlease forward a message containing valid RDP information.",
+            parse_mode='Markdown'
+        )
+        return
+
+    # Send initial status message
+    status_message = await update.message.reply_text(
+        "⏳ *Processing RDP entries...*",
+        parse_mode='Markdown'
+    )
+
+    # Process each RDP entry
+    summary = "*RDP Update Summary*\n\n"
+    success_count = 0
+    failed_count = 0
+
+    for entry in rdp_entries:
+        try:
+            if entry.password == "worldgaming12345^":
+                entry.password = new_password
+                entry.status = "Success"
+                success_count += 1
+            else:
+                entry.status = "Failed"
+                entry.error = "Password pattern not matched"
+                failed_count += 1
+            
+            # Add entry details to summary
+            summary += f"{entry.to_string()}\n\n"
+            
+        except Exception as e:
+            entry.status = "Failed"
+            entry.error = str(e)
+            failed_count += 1
+            summary += f"{entry.to_string()}\n\n"
+
+    # Add final statistics
+    summary += f"*Summary:*\n"
+    summary += f"✅ Successful updates: {success_count}\n"
+    summary += f"❌ Failed updates: {failed_count}\n"
+    
+    # Update the status message with final results
+    await status_message.edit_text(
+        summary,
+        parse_mode='Markdown'
+    )
+
+    if success_count > 0:
+        keyboard = get_main_keyboard()
+        await update.message.reply_text(
+            "✅ *Password update completed!*\n\nUse the keyboard below to manage your RDP settings.",
+            parse_mode='Markdown',
+            reply_markup=keyboard
+        )
+
 def get_main_keyboard():
     return ReplyKeyboardMarkup([
         [KeyboardButton("📝 Set Password"), KeyboardButton("ℹ️ Help")],
         [KeyboardButton("🔄 Current Settings"), KeyboardButton("📋 Commands List")]
     ], resize_keyboard=True)
 
+# [Previous command handlers remain the same]
 async def start(update: Update, context: CallbackContext) -> None:
-    """Handle the /start command"""
     welcome_message = """
 🤖 *Welcome to the RDP/SSH Password Manager Bot!*
 
@@ -34,7 +143,6 @@ Use the keyboard below to navigate through features or type /help for more infor
     )
 
 async def help_command(update: Update, context: CallbackContext) -> None:
-    """Handle the /help command"""
     help_text = """
 *Available Commands:*
 
@@ -56,7 +164,6 @@ async def help_command(update: Update, context: CallbackContext) -> None:
     await update.message.reply_text(help_text, parse_mode='Markdown')
 
 async def show_settings(update: Update, context: CallbackContext) -> None:
-    """Show current bot settings"""
     settings_text = f"""
 *Current Settings:*
 
@@ -65,18 +172,6 @@ Current Password: {new_password}
 Auto-Update: Enabled
     """
     await update.message.reply_text(settings_text, parse_mode='Markdown')
-
-async def handle_forward(update: Update, context: CallbackContext) -> None:
-    message_text = update.message.text
-
-    if "RDP GIVEWAY" in message_text or "SSH GIVEWAY" in message_text:
-        updated_message = modify_message(message_text, "worldgaming12345^", new_password)
-        await update.message.reply_text(
-            f"✅ Password has been updated for {service_type}!\n\n*Updated Details:*\n{updated_message}",
-            parse_mode='Markdown'
-        )
-    else:
-        await update.message.reply_text("❌ No valid RDP or SSH details found in the message.")
 
 async def set_password(update: Update, context: CallbackContext) -> None:
     global new_password, service_type
@@ -95,11 +190,7 @@ async def set_password(update: Update, context: CallbackContext) -> None:
             parse_mode='Markdown'
         )
 
-def modify_message(message_text: str, old_password: str, new_password: str) -> str:
-    return message_text.replace(old_password, new_password)
-
 async def handle_button(update: Update, context: CallbackContext) -> None:
-    """Handle keyboard button presses"""
     text = update.message.text
     
     if text == "📝 Set Password":
